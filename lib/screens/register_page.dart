@@ -1,72 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bloc_hive_login/bloc_architecture/authentication_bloc/authentication_bloc.dart';
-import 'package:bloc_hive_login/repository/authentication_repository.dart';
-import 'package:bloc_hive_login/screens/home_page.dart';
-import 'package:bloc_hive_login/screens/register_page.dart';
+import 'package:bloc_hive_login/bloc_architecture/register_bloc/register_bloc.dart';
+import 'package:bloc_hive_login/repository/register_repository.dart';
+import 'package:bloc_hive_login/screens/login_page.dart';
 
-class LoginAppBar extends StatelessWidget {
-  const LoginAppBar({Key? key}) : super(key: key);
+
+class RegisterAppBar extends StatelessWidget {
+  const RegisterAppBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Login Page'),
+          title: Text('Register Page'),
         ),
         body: BlocProvider(
           create: (context) {
-            return AuthenticationBloc(
-              RepositoryProvider.of<AuthenticationRepository>(context)
-            )..add(AuthenticationInitBoxEvent());
+            return RegisterBloc(
+              RepositoryProvider.of<RegisterRepository>(context)
+            )..add(RegisterInitBoxEvent());
           },
-          child: LoginBody(),
+          child: RegisterBody(),
         ),
       ),
     );
   }
 }
 
-class LoginBody extends StatelessWidget {
-  LoginBody({Key? key}) : super(key: key);
-  final emailAuth = TextEditingController();
-  final passwordAuth = TextEditingController();
+class RegisterBody extends StatelessWidget {
+  RegisterBody({Key? key}) : super(key: key);
+  final usernameRegister = TextEditingController();
+  final emailRegister = TextEditingController();
+  final passwordRegister = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthenticationBloc, AuthenticationState>(
+    return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
-        if (state is AuthenticationSuccess) {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-                  (route) => false,
+        if(state is RegisterSuccess) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoginAppBar()),
           );
-
           showDialog(
             context: context,
             builder: (context) {
               Future.delayed(
                 Duration(seconds: 1),
-                  () => Navigator.of(context).pop(true),
+                    () => Navigator.of(context).pop(true),
               );
               return AlertDialog(
                 title: Icon(
-                  Icons.login,
+                  Icons.input,
                   color: Colors.blue,
                 ),
                 content: Text(
-                  "You're Logged in ${state.email}",
+                  'Your account created ${state.username}, \n You may login',
                   textAlign: TextAlign.center,
                 ),
               );
             },
           );
         }
-        if (state is AuthenticationFailed) {
+        if(state is RegisterFailed) {
           showDialog(
             context: context,
             builder: (context) {
@@ -89,6 +86,7 @@ class LoginBody extends StatelessWidget {
         }
       },
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Form(
             key: _formKey,
@@ -98,7 +96,21 @@ class LoginBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextFormField(
-                    controller: emailAuth,
+                    controller: usernameRegister,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Username'
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Username required';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: emailRegister,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         hintText: 'Email'
@@ -112,16 +124,15 @@ class LoginBody extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
-                    controller: passwordAuth,
+                    controller: passwordRegister,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         hintText: 'Password'
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
-                        return 'Blank Password';
+                        return 'Blank password';
                       }
-                      return null;
                     },
                   ),
                   SizedBox(height: 10),
@@ -129,32 +140,18 @@ class LoginBody extends StatelessWidget {
                     style: ElevatedButton.styleFrom(fixedSize: Size(double.infinity, 40)),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        context.read<AuthenticationBloc>().add(
-                          AuthenticationSubmitEvent(
-                            emailAuth.text,
-                            passwordAuth.text,
+                        context.read<RegisterBloc>().add(
+                          RegisterSubmitEvent(
+                            usernameRegister.text,
+                            emailRegister.text,
+                            passwordRegister.text,
                           ),
                         );
                       }
                     },
-                    child: Text('Submit'),
+                    child: Text('Create Account'),
                   ),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Dont have any Account?'),
-                      SizedBox(width: 5),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context){
-                            return RegisterAppBar();
-                          }));
-                        },
-                        child: Text('Click here.', style: TextStyle(color: Colors.blue),),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             )
@@ -164,4 +161,5 @@ class LoginBody extends StatelessWidget {
     );
   }
 }
+
 

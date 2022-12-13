@@ -1,39 +1,118 @@
-import 'package:bloc_hive_login/bloc_arch/authen_bloc.dart';
-import 'package:bloc_hive_login/hive_box/hive_repos.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:bloc_hive_login/screens/login_page.dart';
+import 'package:bloc_hive_login/storage/user_authentication.dart';
+import 'package:bloc_hive_login/storage/user_register.dart';
 
-class Home extends StatelessWidget {
-  Home({Key? key, required this.emailAddress}) : super(key: key);
-  final String emailAddress;
+class HomePage extends StatefulWidget {
+  HomePage({Key? key, this.email, this.password}) : super(key: key);
+
+  final String? email;
+  final String? password;
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthenBloc(
-        RepositoryProvider.of<HiveRepo>(context),
-      )..add(InitializeBoxEvent()),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Align(
-            child: Text(emailAddress),
-          ),
-        ),
-        body: BlocConsumer(
-          builder: (context, state) {
-            if(state is AuthenInitial) {
-              return Container(
-                child: Text('$emailAddress'),
-              );
-            } return Container(
-              child: Text('$emailAddress'),
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late Box<UserAuthStorage> loginBox;
+  late Box<UserRegisterStorage> registerBox;
+  late Box boxReg;
+  String? username;
+  String? email;
+  @override
+  void initState() {
+    super.initState();
+    showIdentity();
+  }
+
+  void showIdentity() async {
+    if (!Hive.isAdapterRegistered(1) && !Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(UserAuthStorageAdapter());
+      Hive.registerAdapter(UserRegisterStorageAdapter());
+    }
+    loginBox = await Hive.openBox('loginBox');
+    registerBox = await Hive.openBox('registerBox');
+    boxReg = await Hive.openBox('box');
+
+    username = boxReg.get('username');
+    email = boxReg.get('email');
+    setState(() {
+
+    });
+  }
+
+  void logOut() async {
+    loginBox.clear().then(
+          (value) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginAppBar()),
+                  (route) => false,
+            );
+            showDialog(
+              context: context,
+              builder: (context) {
+                Future.delayed(
+                  Duration(seconds: 1),
+                    () => Navigator.of(context).pop(true),
+                );
+                return AlertDialog(
+                  content: Text("You've been logged out", textAlign: TextAlign.center,),
+                );
+              },
             );
           },
-          listener: (context, state) {
-            if(state is AuthenticateToHome) {
+    );
+  }
 
-            }
-          },
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('This is your Home Page $username'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Icon(Icons.logout, color: Colors.red),
+                      content: Text('Log out?', textAlign: TextAlign.center,),
+                      actions: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          onPressed: () {
+                            logOut();
+                          },
+                          child: Text('Log out'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text('Cancel'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              icon: Icon(Icons.logout, color: Colors.green, size: 30,),
+            ),
+            SizedBox(width: 10,)
+          ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Username : $username'),
+              Text('Email : $email'),
+            ],
+          ),
         ),
       ),
     );

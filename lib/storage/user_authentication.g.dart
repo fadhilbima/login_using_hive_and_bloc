@@ -1,35 +1,35 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'user_data.dart';
+part of 'user_authentication.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class UserRepoAdapter extends TypeAdapter<UserRepo> {
+class UserAuthStorageAdapter extends TypeAdapter<UserAuthStorage> {
   @override
   final int typeId = 1;
 
   @override
-  UserRepo read(BinaryReader reader) {
+  UserAuthStorage read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return UserRepo(
+    return UserAuthStorage(
       fields[0] as String,
       fields[1] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, UserRepo obj) {
+  void write(BinaryWriter writer, UserAuthStorage obj) {
     writer
       ..writeByte(2)
       ..writeByte(0)
-      ..write(obj.email)
+      ..write(obj.emailAuthStorage)
       ..writeByte(1)
-      ..write(obj.password);
+      ..write(obj.passwordAuthStorage);
   }
 
   @override
@@ -38,7 +38,7 @@ class UserRepoAdapter extends TypeAdapter<UserRepo> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is UserRepoAdapter &&
+      other is UserAuthStorageAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
